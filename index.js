@@ -19,6 +19,32 @@ app.get('/students', (req,res)=>{
 app.post('/student',(req,res)=>{
         const {name,email,age ,mobile}=req.body;
 
+        if(!name){
+            return res.json({
+                success:false,
+                messege:'name is not found'
+            })
+        }
+
+        if(!email){
+            return res.json({
+                success:false,
+                messege:'email is not found'
+            })
+        }
+
+        if(!age){
+            return res.json({
+                success:false,
+                messege:'age is not found'
+            })
+        }
+        if(!mobile){
+            return res.json({
+                success:false,
+                messege:'mobile is not found'
+            })
+        }
         const newStudents ={
             'name':name ,
             'age':age,
@@ -35,6 +61,25 @@ app.post('/student',(req,res)=>{
 
         })
 
+})
+
+
+app.get('/student',(req,res)=>{
+        const {name}=req.query;
+        let newName ;
+
+        students.forEach((item)=>{
+                if(item.name == name){
+                    newName=item;
+                }
+        });
+
+        console.log(newName)
+        res.send({
+            name:true,
+            data:newName,
+            message:"successfully data found"
+        })
 })
 
 app.listen(PORT,()=>{
