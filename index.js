@@ -1,62 +1,66 @@
 import express from 'express';
+import mongoose, { model,Schema } from 'mongoose';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app=express();
 
 app.use(express.json());
 const PORT=5000;
 
-const students=[]
 
-app.get('/students', (req,res)=>{
+const connectMongoDB=async()=>{
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+        if(conn){
+            console.log("api is working")
+        }
+    
+};
+connectMongoDB();
 
+const productSchema = new Schema({
+    name:String,
+    description:String,
+    price:Number,
+    productImg:String,
+    brand:String
+});
+
+const Product = model('Product' ,productSchema);
+
+
+
+
+app.get('/products', async (req,res)=>{
+
+    const totalproduct = await Product.find()
     res.json({
         success:true,
-        data:students,
+        data:totalproduct,
         messege:"successfully get all students",
     })
 })
 
-app.post('/student',(req,res)=>{
-        const {name,email,age ,mobile}=req.body;
+app.post('/product', async (req,res)=>{
+        const {name,description,price,productImg,brand}=req.body;
 
-        if(!name){
-            return res.json({
-                success:false,
-                messege:'name is not found'
-            })
-        }
+      
 
-        if(!email){
-            return res.json({
-                success:false,
-                messege:'email is not found'
-            })
-        }
+        const newProduct = new Product({
+                name: name,
+                description: description,
+                price: price,
+                productImg:productImg,
+                brand: brand,
 
-        if(!age){
-            return res.json({
-                success:false,
-                messege:'age is not found'
-            })
-        }
-        if(!mobile){
-            return res.json({
-                success:false,
-                messege:'mobile is not found'
-            })
-        }
-        const newStudents ={
-            'name':name ,
-            'age':age,
-            'email':email,
-            'mobile':mobile
-        }
+        })
 
-        students.push(newStudents);
+        const savedProduct = await newProduct.save();
+      
 
         res.json({
             name:true,
-            data:newStudents,
+            data:savedProduct,
             messege:"successfully added new data"
 
         })
@@ -64,20 +68,14 @@ app.post('/student',(req,res)=>{
 })
 
 
-app.get('/student',(req,res)=>{
+app.get('/product', async(req,res)=>{
         const {name}=req.query;
-        let newName ;
-
-        students.forEach((item)=>{
-                if(item.name == name){
-                    newName=item;
-                }
-        });
-
-        console.log(newName)
+       
+        const productFind= await Product.findOne({name:name})
+       
         res.send({
             name:true,
-            data:newName,
+            data:productFind,
             message:"successfully data found"
         })
 })
