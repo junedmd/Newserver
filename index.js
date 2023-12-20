@@ -6,6 +6,14 @@ dotenv.config();
 const app=express();
 
 app.use(express.json());
+
+let counter = 0;
+const apiCallCounter = (req,res,next)=>{
+    counter++;
+    console.log(`api calls :${counter}`)
+    next();
+}
+app.use(apiCallCounter);
 const PORT=5000;
 
 
@@ -18,66 +26,62 @@ const connectMongoDB=async()=>{
 };
 connectMongoDB();
 
-const productSchema = new Schema({
-    name:String,
-    description:String,
-    price:Number,
-    productImg:String,
-    brand:String
-});
+const checkApi = (req,res,next)=>{
+    const {apiKey}=req.query;
+    if(apiKey==="juned"){
+       
+        next();
+    }
+    else{
+        return res.status(401).json({
+            success:false,
+            message:'api key is invalid'
+        })
+    }
+}
 
-const Product = model('Product' ,productSchema);
+const validateParams = (req,res,next)=>{
+    const {title ,description,price}=req.body
+    
+    if(!title){
+        return res.send({
+            success:true,
+            message:'title is missing'
+        })
+    }
+    if(!description){
+        return res.send({
+            success:true,
+            message:'description is missing'
+        })
+    }
+    if(!price){
+        return res.send({
+            success:true,
+            message:'price is missing'
+        })
+    }
+    next();
+}
 
-
-
-
-app.get('/products', async (req,res)=>{
-
-    const totalproduct = await Product.find()
+app.post("/orders", checkApi,validateParams, async(req,res)=>{
     res.json({
         success:true,
-        data:totalproduct,
-        messege:"successfully get all students",
+        data:{},
+        message:"order is created "
     })
 })
 
-app.post('/product', async (req,res)=>{
-        const {name,description,price,productImg,brand}=req.body;
-
-      
-
-        const newProduct = new Product({
-                name: name,
-                description: description,
-                price: price,
-                productImg:productImg,
-                brand: brand,
-
-        })
-
-        const savedProduct = await newProduct.save();
-      
-
-        res.json({
-            name:true,
-            data:savedProduct,
-            messege:"successfully added new data"
-
-        })
-
+app.get("/orders",checkApi,async(req,res)=>{
+    res.json({
+        success:true,
+        data:[],
+        message:"Orders gets successfully"
+    })
 })
 
-
-app.get('/product', async(req,res)=>{
-        const {name}=req.query;
-       
-        const productFind= await Product.findOne({name:name})
-       
-        res.send({
-            name:true,
-            data:productFind,
-            message:"successfully data found"
-        })
+app.get('/poha',(req,res)=>{
+    res.send('api is working')
 })
 
 app.listen(PORT,()=>{
